@@ -20,7 +20,11 @@ const Login = () => {
       localStorage.setItem('role', res.data.role);
       navigate(`/dashboard/${res.data.role}`);
     } catch (err) {
-      setError('Invalid username or password. Please try again.');
+      if (err.response && err.response.status === 401) {
+        setError('Invalid username or password. Please try again.');
+      } else {
+        setError('Cannot connect to the server. Please try again later.');
+      }
     } finally {
       setLoading(false);
     }
