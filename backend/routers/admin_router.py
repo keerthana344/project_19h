@@ -48,13 +48,13 @@ def admin_approve(request_id: int, current_user: User = Depends(get_current_user
     if not request:
         raise HTTPException(status_code=404, detail="Request not found")
     
-    request.status = "approved"
+    request.status = "admin_approved"
     db.commit()
     
     from .notification_router import create_notification
     create_notification(
         user_id=request.student_id,
-        message="Congratulations! Your NO-DUE clearance has been fully approved by the Admin.",
+        message="Your clearance request has been approved by the Admin and is now pending Department Dues.",
         db=db
     )
     

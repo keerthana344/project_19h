@@ -6,3 +6,5 @@ python-jose[cryptography]
 passlib[bcrypt]
 pydantic
 pydantic-settings
+psycopg2-binary
+python-dotenv
