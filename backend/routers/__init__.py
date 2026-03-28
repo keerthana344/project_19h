@@ -1,0 +1,1 @@
+import routers.auth_router as auth_router, routers.student_router as student_router, routers.faculty_router as faculty_router, routers.department_router as department_router, routers.hod_router as hod_router, routers.admin_router as admin_router, routers.common_router as common_router, routers.notification_router as notification_router

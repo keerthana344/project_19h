@@ -1,0 +1,17 @@
+__pycache__/
+*.db
+*.sqlite3
+.env
+venv/
+env/
+test_*.py
+prepare_final_reflection.py
+simulate_e2e.py
+show_db.py
+seed_db.py
+force_approve.py
+fix_hod_ref.py
+debug_notifs.py
+create_notif_table.py
+check_hod.py
+audit_db.py

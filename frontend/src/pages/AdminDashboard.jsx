@@ -1,20 +1,22 @@
-import React, { useEffect, useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import api from '../api';
-import Layout from '../components/Layout';
-import { CheckCircle, XCircle, Info, CreditCard } from 'lucide-react';
+import { useAuth } from '../context/AuthContext';
+import { BarChart3, Users, FileCheck, ShieldAlert, LogOut, CheckCircle2, Clock as ClockIcon } from 'lucide-react';
+import ClearanceStatus from '../components/ClearanceStatus';
+import NotificationBell from '../components/NotificationBell';
 
 const AdminDashboard = () => {
-  const [requests, setRequests] = useState([]);
+  const { user, logout } = useAuth();
+  const [stats, setStats] = useState(null);
+  const [pending, setPending] = useState([]);
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    fetchRequests();
-  }, []);
-
-  const fetchRequests = async () => {
+  const fetchData = async () => {
     try {
-      const res = await api.get('/admin/requests');
-      setRequests(res.data);
+      const statsRes = await api.get('/admin/stats');
+      setStats(statsRes.data);
+      const res = await api.get('/admin/all-status');
+      setPending(res.data);
     } catch (err) {
       console.error(err);
     } finally {
@@ -22,92 +24,111 @@ const AdminDashboard = () => {
     }
   };
 
-  const handleAction = async (id, status) => {
-    const remarks = prompt(`Enter remarks for ${status}:`);
-    if (remarks === null) return;
+  useEffect(() => {
+    fetchData();
+    const interval = setInterval(fetchData, 10000);
+    return () => clearInterval(interval);
+  }, []);
+
+  const handleApprove = async (id) => {
     try {
-      await api.post(`/admin/approve/${id}`, { status, remarks });
-      fetchRequests();
+      await api.post(`/admin/approve/${id}`);
+      fetchData();
     } catch (err) {
-      alert(err.response?.data?.msg || 'Error recording action');
+      alert("Approval failed");
     }
   };
 
-  if (loading) return null;
-
   return (
-    <Layout title="Dues Clearance" role="Admin">
-      <div style={{ display: 'grid', gap: '2rem' }}>
-        <div className="card" style={{ padding: 0, overflow: 'hidden' }}>
-          <table style={{ width: '100%', borderCollapse: 'collapse' }}>
-            <thead>
-              <tr style={{ background: '#f8fafc', borderBottom: '1px solid #e2e8f0' }}>
-                <th style={{ padding: '1rem 1.5rem', textAlign: 'left', fontSize: '0.75rem', fontWeight: '600', color: '#64748b', textTransform: 'uppercase' }}>Student Detail</th>
-                <th style={{ padding: '1rem 1.5rem', textAlign: 'left', fontSize: '0.75rem', fontWeight: '600', color: '#64748b', textTransform: 'uppercase' }}>Dues Status</th>
-                <th style={{ padding: '1rem 1.5rem', textAlign: 'right', fontSize: '0.75rem', fontWeight: '600', color: '#64748b', textTransform: 'uppercase' }}>Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              {requests.length === 0 ? (
-                <tr>
-                  <td colSpan="3" style={{ padding: '3rem', textAlign: 'center', color: '#64748b' }}>No pending admin approvals.</td>
-                </tr>
-              ) : (
-                requests.map(r => (
-                  <tr key={r.id} style={{ borderBottom: '1px solid #f1f5f9' }}>
-                    <td style={{ padding: '1.5rem' }}>
-                      <div style={{ fontWeight: '600', color: '#1e293b' }}>{r.student_name}</div>
-                      <div style={{ fontSize: '0.75rem', color: '#64748b' }}>{r.roll_num}</div>
-                    </td>
-                    <td style={{ padding: '1.5rem' }}>
-                      <div style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap' }}>
-                        {r.dues.map((d, i) => (
-                          <div key={i} style={{ 
-                            display: 'flex', 
-                            alignItems: 'center', 
-                            gap: '0.5rem', 
-                            fontSize: '0.875rem',
-                            padding: '0.375rem 0.75rem',
-                            borderRadius: '0.5rem',
-                            background: d.is_cleared ? '#d1fae5' : '#fee2e2',
-                            color: d.is_cleared ? '#065f46' : '#991b1b'
-                          }}>
-                            {d.is_cleared ? <CheckCircle size={14} /> : <XCircle size={14} />}
-                            <span style={{ textTransform: 'capitalize' }}>{d.type}: {d.amount > 0 ? `₹${d.amount}` : 'Clear'}</span>
-                          </div>
-                        ))}
-                      </div>
-                    </td>
-                    <td style={{ padding: '1.5rem', textAlign: 'right' }}>
-                      <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '0.75rem' }}>
-                        <button onClick={() => handleAction(r.id, 'approved')} className="btn btn-primary" style={{ padding: '0.5rem 1rem' }}>
-                          Approve Clearance
-                        </button>
-                        <button onClick={() => handleAction(r.id, 'rejected')} className="btn btn-danger" style={{ padding: '0.5rem 1rem' }}>
-                          Reject
-                        </button>
-                      </div>
-                    </td>
-                  </tr>
-                ))
-              )}
-            </tbody>
-          </table>
+    <div style={{ display: 'flex', minHeight: '100vh' }}>
+      <div className="glass-card" style={{ width: '260px', borderRadius: '0', borderRight: '1px solid var(--glass-border)', padding: '1.5rem' }}>
+        <h3 style={{ color: 'var(--primary)', marginBottom: '2rem' }}>Admin Panel</h3>
+        <nav>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', padding: '0.75rem', background: 'rgba(255,255,255,0.05)', borderRadius: '8px', marginBottom: '0.5rem' }}>
+            <BarChart3 size={20} /> Analytics
+          </div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', padding: '0.75rem', borderRadius: '8px', color: 'var(--text-muted)' }}>
+            <ShieldAlert size={20} /> Escalations
+          </div>
+        </nav>
+        <div style={{ position: 'absolute', bottom: '2rem', cursor: 'pointer', color: 'var(--error)' }} onClick={logout}>
+          <LogOut size={20} /> Logout
         </div>
-        
-        <div style={{ display: 'flex', gap: '1rem', background: '#eff6ff', padding: '1.25rem', borderRadius: '0.75rem', border: '1px solid #bfdbfe', color: '#1e40af' }}>
-          <Info size={24} style={{ flexShrink: 0 }} />
+      </div>
+
+      <div style={{ flex: 1, padding: '2rem' }}>
+        <header style={{ marginBottom: '2rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           <div>
-            <h4 style={{ fontSize: '0.875rem', fontWeight: 'bold', marginBottom: '0.25rem' }}>Administrator Note</h4>
-            <p style={{ fontSize: '0.875rem', lineHeight: 1.5 }}>
-              Admin approval is only possible once all student dues (Library, Hostel, Accounts) are marked as cleared in the database. 
-              The system automatically validates this before allowing approval.
-            </p>
+            <h2>System Management</h2>
+            <p style={{ color: 'var(--text-muted)' }}>Monitoring every clearance stage in real-time.</p>
+          </div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+             <NotificationBell />
+             <div className="status-badge" style={{ background: 'var(--glass)' }}>Role: Admin</div>
+          </div>
+        </header>
+
+        <div className="glass-card animate-fade" style={{ marginBottom: '2rem' }}>
+          <h3>Master Clearance Monitoring</h3>
+          <p style={{ color: 'var(--text-muted)', marginBottom: '1rem' }}>Reflection of every Faculty and HOD approval. Final button enables after HOD sign-off.</p>
+          <div style={{ marginTop: '1rem' }}>
+            {pending.map(item => (
+              <div key={item.id} style={{ display: 'flex', flexDirection: 'column', gap: '1rem', padding: '1.5rem', borderBottom: '1px solid var(--glass-border)', background: 'rgba(255,255,255,0.01)', borderRadius: '8px', marginBottom: '1rem' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <div>
+                    <span style={{ fontWeight: '600' }}>Request #{item.id} - Student: {item.student_username}</span>
+                    <p style={{ fontSize: '0.875rem', color: 'var(--text-muted)' }}>Status: <span style={{ color: 'var(--primary)' }}>{item.status}</span></p>
+                  </div>
+                  {item.status === 'approved' ? (
+                     <div style={{ color: 'var(--success)', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                        <CheckCircle2 size={20} /> Fully Approved
+                     </div>
+                  ) : item.is_ready ? (
+                    <button className="btn-primary" onClick={() => handleApprove(item.id)} style={{ background: 'var(--success)' }}>Issue Final Clearance</button>
+                  ) : (
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', color: 'var(--warning)', fontSize: '0.875rem' }}>
+                      <ClockIcon size={16} /> Awaiting HOD Sign-off
+                    </div>
+                  )}
+                </div>
+                <ClearanceStatus requestId={item.id} />
+              </div>
+            ))}
+            {pending.length === 0 && !loading && <p style={{ textAlign: 'center', color: 'var(--text-muted)' }}>No requests in the system.</p>}
+          </div>
+        </div>
+
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '1.5rem', marginBottom: '2.5rem' }}>
+          <StatCard title="Total Users" value={stats?.total_users || 0} icon={<Users />} color="var(--primary)" />
+          <StatCard title="Requests" value={stats?.total_requests || 0} icon={<FileCheck />} color="#8b5cf6" />
+          <StatCard title="Approved" value={stats?.approved || 0} icon={<CheckCircle2 />} color="var(--success)" />
+          <StatCard title="Pending" value={stats?.pending || 0} icon={<ClockIcon />} color="var(--pending)" />
+        </div>
+
+        <div className="glass-card animate-fade">
+          <h3>Approval Trends</h3>
+          <div style={{ height: '200px', display: 'flex', alignItems: 'flex-end', justifyContent: 'space-around', padding: '2rem 0' }}>
+            <div style={{ width: '40px', height: '80%', background: 'var(--primary)', borderRadius: '4px 4px 0 0' }}></div>
+            <div style={{ width: '40px', height: '60%', background: 'var(--primary)', borderRadius: '4px 4px 0 0' }}></div>
+            <div style={{ width: '40px', height: '95%', background: 'var(--primary)', borderRadius: '4px 4px 0 0' }}></div>
+            <div style={{ width: '40px', height: '40%', background: 'var(--primary)', borderRadius: '4px 4px 0 0' }}></div>
           </div>
         </div>
       </div>
-    </Layout>
+    </div>
   );
 };
+
+const StatCard = ({ title, value, icon, color }) => (
+  <div className="glass-card animate-fade" style={{ padding: '1.5rem' }}>
+    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+      <div>
+        <p style={{ color: 'var(--text-muted)', fontSize: '0.875rem' }}>{title}</p>
+        <h2 style={{ margin: '0.5rem 0' }}>{value}</h2>
+      </div>
+      <div style={{ color }}>{React.cloneElement(icon, { size: 24 })}</div>
+    </div>
+  </div>
+);
 
 export default AdminDashboard;

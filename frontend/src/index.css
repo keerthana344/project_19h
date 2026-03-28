@@ -1,132 +1,75 @@
-@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap');
-
+/* Global Styles and Design System - No-Due Clearance System */
 :root {
-  --primary: #4f46e5;
-  --primary-hover: #4338ca;
-  --secondary: #64748b;
+  --primary: #6366f1;
+  --primary-hover: #4f46e5;
+  --bg-dark: #0f172a;
+  --glass: rgba(255, 255, 255, 0.05);
+  --glass-border: rgba(255, 255, 255, 0.1);
+  --text-main: #f8fafc;
+  --text-muted: #94a3b8;
   --success: #10b981;
-  --warning: #f59e0b;
-  --danger: #ef4444;
-  --bg-main: #f8fafc;
-  --card-bg: rgba(255, 255, 255, 0.8);
-  --glass-border: rgba(255, 255, 255, 0.2);
-  --text-main: #1e293b;
-  --text-muted: #64748b;
-  --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
-  --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
-  --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+  --error: #ef4444;
+  --pending: #f59e0b;
 }
 
 * {
   margin: 0;
   padding: 0;
   box-sizing: border-box;
+  font-family: 'Inter', system-ui, -apple-system, sans-serif;
 }
 
 body {
-  font-family: 'Outfit', sans-serif;
-  background-color: var(--bg-main);
+  background-color: var(--bg-dark);
   color: var(--text-main);
-  line-height: 1.5;
+  min-height: 100vh;
+  overflow-x: hidden;
 }
 
-/* Glassmorphism Classes */
-.glass {
-  background: var(--card-bg);
+.glass-card {
+  background: var(--glass);
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
   border: 1px solid var(--glass-border);
-  box-shadow: var(--shadow-md);
-}
-
-.btn {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  padding: 0.625rem 1.25rem;
-  font-weight: 500;
-  border-radius: 0.5rem;
-  cursor: pointer;
-  transition: all 0.2s;
-  border: none;
-  font-size: 0.875rem;
+  border-radius: 16px;
+  padding: 2rem;
+  box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
 }
 
 .btn-primary {
-  background: var(--primary);
+  background-color: var(--primary);
   color: white;
+  border: none;
+  padding: 0.75rem 1.5rem;
+  border-radius: 8px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
 }
 
 .btn-primary:hover {
-  background: var(--primary-hover);
+  background-color: var(--primary-hover);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(99, 102, 241, 0.4);
 }
 
-.btn-danger {
-  background: var(--danger);
-  color: white;
-}
-
-.card {
-  background: white;
-  border-radius: 1rem;
-  padding: 1.5rem;
-  box-shadow: var(--shadow-md);
-}
-
-.badge {
+.status-badge {
   padding: 0.25rem 0.75rem;
-  border-radius: 9999px;
-  font-size: 0.75rem;
-  font-weight: 600;
-  text-transform: uppercase;
+  border-radius: 999px;
+  font-size: 0.875rem;
+  font-weight: 500;
 }
 
-.badge-pending { background: #fef3c7; color: #92400e; }
-.badge-approved { background: #d1fae5; color: #065f46; }
-.badge-rejected { background: #fee2e2; color: #991b1b; }
+.status-pending { background: rgba(245, 158, 11, 0.2); color: #f59e0b; }
+.status-approved { background: rgba(16, 185, 129, 0.2); color: #10b981; }
+.status-rejected { background: rgba(239, 68, 68, 0.2); color: #ef4444; }
 
-/* Status Tracker UI */
-.stepper {
-  display: flex;
-  justify-content: space-between;
-  margin-bottom: 2rem;
-  position: relative;
+/* Micro-animations */
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
 }
 
-.stepper::before {
-  content: '';
-  position: absolute;
-  top: 50%;
-  left: 0;
-  right: 0;
-  height: 2px;
-  background: #e2e8f0;
-  z-index: 0;
-}
-
-.step {
-  z-index: 1;
-  background: white;
-  border: 2px solid #e2e8f0;
-  border-radius: 50%;
-  width: 2.5rem;
-  height: 2.5rem;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-weight: bold;
-  color: #94a3b8;
-  transition: all 0.3s;
-}
-
-.step.active {
-  border-color: var(--primary);
-  color: var(--primary);
-  background: #eef2ff;
-}
-
-.step.completed {
-  background: var(--success);
-  border-color: var(--success);
-  color: white;
+.animate-fade {
+  animation: fadeIn 0.5s ease forwards;
 }

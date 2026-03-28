@@ -1,45 +1,30 @@
 # No-Due Clearance Management System
 
-A full-stack digital system to automate the college no-due clearance process.
-
-## Tech Stack
-- **Frontend**: React.js (Vite), Axios, React Router
-- **Backend**: Python (Flask), SQLAlchemy, JWT Authentication
-- **Database**: PostgreSQL (or SQLite for development)
-
-## Directory Structure
-- `backend/`: Flask API and Database models
-- `frontend/`: React application
-
-## Setup Instructions
-
-### Backend Setup
-1. Navigate to `backend/` directory.
-2. Create a virtual environment: `python -m venv venv`
-3. Activate the environment:
-   - Windows: `venv\Scripts\activate`
-   - Linux/Mac: `source venv/bin/activate`
-4. Install dependencies: `pip install -r requirements.txt`
-5. (Optional) Set `DATABASE_URL` in `.env`. Defaults to a local PostgreSQL or SQLite.
-6. Initialize database and seed data: `python seed.py`
-7. Run the server: `python app.py`
-
-### Frontend Setup
-1. Navigate to `frontend/` directory.
-2. Install dependencies: `npm install`
-3. Run the development server: `npm run dev`
-
-## User Roles & Credentials (Dummy Data)
-- **Student**: `student1` / `pass123`
-- **Faculty**: `faculty1` / `pass123`
-- **Admin**: `admin1` / `pass123`
-- **HOD**: `hod1` / `pass123`
-- **Staff**: `staff1` / `pass123`
+A digital, role-based clearance system for colleges to automate the no-due process.
 
 ## Features
-- Role-based dashboard access.
-- Real-time status tracking for students.
-- Attendance-based eligibility check for faculty.
-- Dues management for admin.
-- Bulk approval for HOD.
-- Hall ticket issuance for staff.
+- **Role-Based Access**: Student, Faculty, Department Staff, HOD, and Admin.
+- **Automated Eligibility**: Flagging low attendance (< 85%) and pending dues.
+- **Real-Time Tracking**: Visual pipeline for students to monitor progress.
+- **Analytics**: Admin dashboard with system-wide statistics.
+- **Secure**: JWT-based authentication with protected routes.
+
+## Tech Stack
+- **Backend**: FastAPI (Python), SQLAlchemy (SQLite)
+- **Frontend**: React.js (Vite), Vanilla CSS (Glassmorphism), Lucide React Icons
+
+## Getting Started
+
+### Backend
+1. `cd backend`
+2. `pip install -r requirements.txt`
+3. `uvicorn main:app --reload`
+
+### Frontend
+1. `cd frontend`
+2. `npm install`
+3. `npm run dev`
+
+## User Roles (Sample Credentials)
+- Register users via the `/register` page with appropriate roles.
+- Use 'admin' in username for Admin role mocking (or select in dropdown).

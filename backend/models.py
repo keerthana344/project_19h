@@ -1,79 +1,67 @@
-from flask_sqlalchemy import SQLAlchemy
+from sqlalchemy import Column, Integer, String, Float, DateTime, ForeignKey, Enum, Boolean
+from sqlalchemy.ext.declarative import declarative_base
+from sqlalchemy.orm import relationship
+import enum
 from datetime import datetime
 
-db = SQLAlchemy()
+Base = declarative_base()
 
-class User(db.Model):
-    __tablename__ = 'users'
-    id = db.Column(db.Integer, primary_key=True)
-    username = db.Column(db.String(80), unique=True, nullable=False)
-    password_hash = db.Column(db.String(255), nullable=False)
-    role = db.Column(db.String(20), nullable=False) # student, faculty, admin, hod, staff
+class UserRole(enum.Enum):
+    STUDENT = "student"
+    FACULTY = "faculty"
+    DEPT_STAFF = "dept_staff"
+    HOD = "hod"
+    ADMIN = "admin"
 
-class Department(db.Model):
-    __tablename__ = 'departments'
-    id = db.Column(db.Integer, primary_key=True)
-    name = db.Column(db.String(100), unique=True, nullable=False)
+class User(Base):
+    __tablename__ = "users"
+    id = Column(Integer, primary_key=True, index=True)
+    username = Column(String, unique=True, index=True)
+    full_name = Column(String)
+    email = Column(String, unique=True, index=True)
+    password_hash = Column(String)
+    role = Column(String) # For simplicity using string or Enum
+    department = Column(String) # For faculty/staff/hod
 
-class Student(db.Model):
-    __tablename__ = 'students'
-    id = db.Column(db.Integer, primary_key=True)
-    user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
-    name = db.Column(db.String(100), nullable=False)
-    roll_num = db.Column(db.String(20), unique=True, nullable=False)
-    dept_id = db.Column(db.Integer, db.ForeignKey('departments.id'), nullable=False)
-    is_hosteller = db.Column(db.Boolean, default=False)
+class ClearanceRequest(Base):
+    __tablename__ = "clearance_requests"
+    id = Column(Integer, primary_key=True, index=True)
+    student_id = Column(Integer, ForeignKey("users.id"))
+    status = Column(String, default="pending") # pending, approved, rejected
+    submitted_at = Column(DateTime, default=datetime.utcnow)
     
-    attendance = db.relationship('Attendance', backref='student', lazy=True)
-    dues = db.relationship('Due', backref='student', lazy=True)
-    requests = db.relationship('ClearanceRequest', backref='student', lazy=True)
+    student = relationship("User")
 
-class Faculty(db.Model):
-    __tablename__ = 'faculty'
-    id = db.Column(db.Integer, primary_key=True)
-    user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
-    name = db.Column(db.String(100), nullable=False)
-    dept_id = db.Column(db.Integer, db.ForeignKey('departments.id'), nullable=False)
-
-class ClearanceRequest(db.Model):
-    __tablename__ = 'clearance_requests'
-    id = db.Column(db.Integer, primary_key=True)
-    student_id = db.Column(db.Integer, db.ForeignKey('students.id'), nullable=False)
-    status = db.Column(db.String(30), default='pending') # pending, faculty_approved, admin_approved, hod_approved, completed, rejected
-    created_at = db.Column(db.DateTime, default=datetime.utcnow)
-    updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+class FacultyClearance(Base):
+    __tablename__ = "faculty_clearances"
+    id = Column(Integer, primary_key=True, index=True)
+    request_id = Column(Integer, ForeignKey("clearance_requests.id"))
+    faculty_id = Column(Integer, ForeignKey("users.id"))
+    subject = Column(String)
+    attendance = Column(Float)
+    marks = Column(Float)
+    status = Column(String, default="pending") # pending, approved, rejected
+    remarks = Column(String, nullable=True)
     
-    approvals = db.relationship('Approval', backref='request', lazy=True)
+    request = relationship("ClearanceRequest")
+    faculty = relationship("User")
 
-class Approval(db.Model):
-    __tablename__ = 'approvals'
-    id = db.Column(db.Integer, primary_key=True)
-    request_id = db.Column(db.Integer, db.ForeignKey('clearance_requests.id'), nullable=False)
-    approver_role = db.Column(db.String(20), nullable=False)
-    approver_id = db.Column(db.Integer, nullable=True) # User ID who approved
-    status = db.Column(db.String(20), nullable=False) # approved, rejected
-    remarks = db.Column(db.Text, nullable=True)
-    timestamp = db.Column(db.DateTime, default=datetime.utcnow)
+class DepartmentClearance(Base):
+    __tablename__ = "department_clearances"
+    id = Column(Integer, primary_key=True, index=True)
+    request_id = Column(Integer, ForeignKey("clearance_requests.id"))
+    dept_name = Column(String) # Library, Hostel, Accounts, etc.
+    status = Column(String, default="pending")
+    remarks = Column(String, nullable=True)
 
-class Due(db.Model):
-    __tablename__ = 'dues'
-    id = db.Column(db.Integer, primary_key=True)
-    student_id = db.Column(db.Integer, db.ForeignKey('students.id'), nullable=False)
-    type = db.Column(db.String(20), nullable=False) # hostel, library, accounts
-    amount = db.Column(db.Float, default=0.0)
-    is_cleared = db.Column(db.Boolean, default=False)
+    request = relationship("ClearanceRequest")
 
-class Attendance(db.Model):
-    __tablename__ = 'attendance'
-    id = db.Column(db.Integer, primary_key=True)
-    student_id = db.Column(db.Integer, db.ForeignKey('students.id'), nullable=False)
-    subject = db.Column(db.String(100), nullable=False)
-    percentage = db.Column(db.Float, nullable=False)
-
-class Notification(db.Model):
-    __tablename__ = 'notifications'
-    id = db.Column(db.Integer, primary_key=True)
-    user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
-    message = db.Column(db.Text, nullable=False)
-    is_read = db.Column(db.Boolean, default=False)
-    timestamp = db.Column(db.DateTime, default=datetime.utcnow)
+class Notification(Base):
+    __tablename__ = "notifications"
+    id = Column(Integer, primary_key=True, index=True)
+    user_id = Column(Integer, ForeignKey("users.id"))
+    message = Column(String)
+    is_read = Column(Boolean, default=False)
+    created_at = Column(DateTime, default=datetime.utcnow)
+    
+    user = relationship("User")
